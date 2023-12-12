@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "16749370152",
+    "project_id": "taxicle-6c842",
+    "storage_bucket": "taxicle-6c842.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:16749370152:android:9e20ae0a89b85b88ea4e1d",
+        "android_client_info": {
+          "package_name": "com.example.taxicle"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAV8N_TCKhvLfSbBeYjl4dUumwWMe8Wo0U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
