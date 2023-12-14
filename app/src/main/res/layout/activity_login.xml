@@ -34,7 +34,8 @@
             android:textColor="#B3000000"
             android:textColorHint="#B3000000"
             android:textSize="13dp"
-            android:hint="Enter Email" />
+            android:hint="Enter Email"
+            android:inputType="textEmailAddress"/>
         <EditText
             android:id="@+id/et_password"
             android:layout_width="300dp"
@@ -46,7 +47,8 @@
             android:textColor="#B3000000"
             android:textColorHint="#B3000000"
             android:textSize="13dp"
-            android:hint="Enter your Password" />
+            android:hint="Enter your Password"
+            android:inputType="textPassword"/>
 
         <ProgressBar
             android:id="@+id/progress_bar"
