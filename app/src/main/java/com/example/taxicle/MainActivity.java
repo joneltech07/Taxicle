@@ -35,6 +35,7 @@ import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -59,7 +60,6 @@ import com.mapbox.geojson.Point;
 import com.mapbox.maps.CameraOptions;
 import com.mapbox.maps.EdgeInsets;
 import com.mapbox.maps.MapView;
-import com.mapbox.maps.Style;
 import com.mapbox.maps.extension.style.layers.properties.generated.TextAnchor;
 import com.mapbox.maps.plugin.LocationPuck2D;
 import com.mapbox.maps.plugin.animation.MapAnimationOptions;
@@ -81,7 +81,6 @@ import com.mapbox.search.ui.view.SearchResultsView;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 
 import kotlin.Unit;
@@ -178,6 +177,10 @@ public class MainActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
+    private boolean isProceed = false;
+    private String pickUpLocationName, dropOffLocationName, notesForDriver;
+    private Point pickUpPoint, dropOffPoint;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -297,7 +300,7 @@ public class MainActivity extends AppCompatActivity {
             activityResultLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
         }
 
-        mapView.getMapboxMap().loadStyleUri("mapbox://styles/jltolentino/clpxx8g5j00jr01re4o8x833g", style -> {
+        mapView.getMapboxMap().loadStyleUri("mapbox://styles/jltolentino/clpxwr3q200iy01r7gzqf2gdt", style -> {
             Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.location);
             AnnotationPlugin annotationPlugin = AnnotationPluginImplKt.getAnnotations(mapView);
             PointAnnotationManager pointAnnotationManager = PointAnnotationManagerKt.createPointAnnotationManager(annotationPlugin, new AnnotationConfig());
@@ -310,7 +313,10 @@ public class MainActivity extends AppCompatActivity {
 
                 searchResultsView.setVisibility(View.GONE);
 
-                locationInfo(point);
+//              Display pickup or drop-off dialog info
+                if (isProceed) dropLocationInfo(point);
+                else pickLocationInfo(point);
+
                 return true;
             });
 
@@ -349,7 +355,7 @@ public class MainActivity extends AppCompatActivity {
                     pointAnnotationManager.create(pointAnnotationOptions);
                     updateCamera(placeAutocompleteSuggestion.getCoordinate(), 0.0);
 
-                    locationInfo(placeAutocompleteSuggestion.getCoordinate());
+                    pickLocationInfo(placeAutocompleteSuggestion.getCoordinate());
                     searchET.clearFocus();
                     hideKeyboard(MainActivity.this, searchET);
                 }
@@ -383,7 +389,8 @@ public class MainActivity extends AppCompatActivity {
         return address;
     }
 
-    private void locationInfo(Point point) {
+//    Show pick up info
+    private void pickLocationInfo(Point point) {
         // Inflate the bottom dialog layout
         View dialogView = LayoutInflater.from(this).inflate(R.layout.pickup_info, null);
 
@@ -412,7 +419,10 @@ public class MainActivity extends AppCompatActivity {
         Button dialogButtonOK = dialogView.findViewById(R.id.btn_choose_point);
         dialogButtonOK.setOnClickListener(v -> {
             // Handle button click (dismiss the dialog or perform other actions)
-            showBookOptionDialog(locationName, point, notes.getText().toString());
+            pickUpLocationName = locationName;
+            pickUpPoint = point;
+            notesForDriver = notes.getText().toString();
+            showBookInfoDialog();
             bottomDialog.dismiss();
         });
 
@@ -421,7 +431,54 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void showBookOptionDialog(String locationName, Point point, String notes) {
+//    Show drop location info
+    private void dropLocationInfo(Point point) {
+        // Inflate the bottom dialog layout
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dropoff_info, null);
+
+        // Create a dialog without a title
+        Dialog bottomDialog = new Dialog(this);
+        bottomDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        bottomDialog.setContentView(dialogView);
+
+        // Set the dialog to appear at the bottom of the screen
+        Window window = bottomDialog.getWindow();
+        if (window != null) {
+            window.setGravity(android.view.Gravity.BOTTOM);
+            window.setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+
+        TextView tvLocationName = dialogView.findViewById(R.id.location_name);
+        TextView tvPoint = dialogView.findViewById(R.id.point);
+
+        Address address = getGeoCode(point);
+        String locationName = address.getAddressLine(0);
+        tvLocationName.setText(locationName);
+        tvPoint.setText(String.format("long: %s, lat: %s", point.longitude(), point.latitude()));
+
+        // Set click listener for the "OK" button
+        Button dialogButtonOK = dialogView.findViewById(R.id.btn_choose_point);
+        ImageButton dialogButtonReset = dialogView.findViewById(R.id.btn_reset);
+
+        dialogButtonOK.setOnClickListener(v -> {
+            // Handle button click (dismiss the dialog or perform other actions)
+            dropOffLocationName = locationName;
+            dropOffPoint = point;
+            confirmBooking();
+            bottomDialog.dismiss();
+        });
+
+        dialogButtonReset.setOnClickListener(v -> {
+            isProceed = false;
+            bottomDialog.dismiss();
+        });
+
+        // Show the bottom dialog
+        bottomDialog.show();
+
+    }
+
+    private void showBookInfoDialog() {
         // Inflate the bottom dialog layout
         View dialogView = LayoutInflater.from(this).inflate(R.layout.book_option, null);
 
@@ -443,17 +500,23 @@ public class MainActivity extends AppCompatActivity {
         tvPoint = dialogView.findViewById(R.id.point);
         tvNote = dialogView.findViewById(R.id.pick_up_notes);
 
-        tvLocName.setText(locationName);
-        tvPoint.setText(String.format("long: %s lat: %s", point.longitude(), point.latitude()));
-        tvNote.setText(notes);
+        tvLocName.setText(pickUpLocationName);
+        tvPoint.setText(String.format("long: %s lat: %s", pickUpPoint.longitude(), pickUpPoint.latitude()));
+        tvNote.setText(notesForDriver);
 
-        if (notes.isEmpty()) tvNote.setVisibility(View.GONE);
+        if (notesForDriver.isEmpty()) tvNote.setVisibility(View.GONE);
 
         // Set click listener for the "OK" button
-        Button dialogBtnBookNow = dialogView.findViewById(R.id.btn_book_now);
-        dialogBtnBookNow.setOnClickListener(v -> {
+        Button dialogBtnProceed = dialogView.findViewById(R.id.btn_proceed);
+        Button dialogBtnCancel = dialogView.findViewById(R.id.btn_cancel);
+
+        dialogBtnProceed.setOnClickListener(v -> {
             // Handle button click (dismiss the dialog or perform other actions)
-            bookNow(point, notes, locationName);
+            isProceed = true;
+            bottomDialog.dismiss();
+        });
+
+        dialogBtnCancel.setOnClickListener(v -> {
             bottomDialog.dismiss();
         });
 
@@ -461,26 +524,66 @@ public class MainActivity extends AppCompatActivity {
         bottomDialog.show();
     }
 
-    private void bookNow(Point point, String notes, String locationName) {
-//
-//        HashMap<String, Object> hashMap = new HashMap<>();
-//        hashMap.put("locationName", locationName);
-//        hashMap.put("latitude", point.latitude());
-//        hashMap.put("longitude", point.longitude());
-//        hashMap.put("notes", notes);
-//
-//        DAO dao = new DAO();
-//        dao.shareLocation(user.getUid(), hashMap);
+    private void confirmBooking() {
+        // Inflate the bottom dialog layout
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.confirm_booking, null);
 
+        // Create a dialog without a title
+        Dialog bottomDialog = new Dialog(this);
+        bottomDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        bottomDialog.setContentView(dialogView);
+
+        // Set the dialog to appear at the bottom of the screen
+        Window window = bottomDialog.getWindow();
+        if (window != null) {
+            window.setGravity(android.view.Gravity.BOTTOM);
+            window.setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+
+        TextView tvPickUpLocationName = dialogView.findViewById(R.id.pickup_location_name);
+        TextView tvPickUpPoint = dialogView.findViewById(R.id.pickup_point);
+        TextView tvDropLocationName = dialogView.findViewById(R.id.drop_location_name);
+        TextView tvDropPoint = dialogView.findViewById(R.id.drop_point);
+
+        tvPickUpLocationName.setText(pickUpLocationName);
+        tvPickUpPoint.setText(String.format("long: %s, lat: %s", pickUpPoint.longitude(), pickUpPoint.latitude()));
+
+        tvDropLocationName.setText(dropOffLocationName);
+        tvDropPoint.setText(String.format("long: %s, lat: %s", dropOffPoint.longitude(), dropOffPoint.latitude()));
+
+
+        Button dialogButtonBookNow = dialogView.findViewById(R.id.btn_book_now);
+        Button dialogButtonCancel = dialogView.findViewById(R.id.btn_cancel);
+
+        dialogButtonBookNow.setOnClickListener(v -> {
+            // Handle button click (dismiss the dialog or perform other actions)
+            isProceed = false;
+            bookNow();
+            bottomDialog.dismiss();
+        });
+
+        dialogButtonCancel.setOnClickListener(v -> {
+            isProceed = false;
+            bottomDialog.dismiss();
+        });
+
+        // Show the bottom dialog
+        bottomDialog.show();
+    }
+
+    private void bookNow() {
         Date date = new Date();
 
         Booking booking = new Booking();
         booking.setId(user.getUid());
-        booking.setLocationName(locationName);
-        booking.setLongitude(point.longitude());
-        booking.setLatitude(point.latitude());
-        booking.setNotes(notes);
+        booking.setPickUplocationName(pickUpLocationName);
+        booking.setPickUpLongitude(pickUpPoint.longitude());
+        booking.setPickUpLatitude(pickUpPoint.latitude());
+        booking.setNotes(notesForDriver);
         booking.setDate(date);
+        booking.setDropOffLocationName(dropOffLocationName);
+        booking.setDropOffLongitude(dropOffPoint.longitude());
+        booking.setDropOffLatitude(dropOffPoint.latitude());
 
         DAOBooking daoBooking = new DAOBooking();
         daoBooking.addBooking(booking);

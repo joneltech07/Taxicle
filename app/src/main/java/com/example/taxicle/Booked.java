@@ -1,7 +1,5 @@
 package com.example.taxicle;
 
-import static com.example.taxicle.viewsetting.ViewSetting.makeViewFullScreen;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -13,8 +11,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.taxicle.constructors.Booking;
-import com.example.taxicle.constructors.Passenger;
-import com.example.taxicle.data_access_object.DAO;
 import com.example.taxicle.data_access_object.DAOBooking;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -54,9 +50,9 @@ public class Booked extends AppCompatActivity {
                             bookingInfo.setVisibility(View.VISIBLE);
 
                             Booking booking = snapshot.getValue(Booking.class);
-                            longitude = booking.getLongitude();
-                            latitude = booking.getLatitude();
-                            String locationName = booking.getLocationName();
+                            longitude = booking.getPickUpLongitude();
+                            latitude = booking.getPickUpLatitude();
+                            String locationName = booking.getPickUplocationName();
                             String notes = booking.getNotes();
 
                             TextView tvLocationName = findViewById(R.id.location_name);

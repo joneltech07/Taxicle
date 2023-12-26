@@ -3,19 +3,22 @@ package com.example.taxicle.constructors;
 import java.util.Date;
 
 public class Booking {
-    public String id, locationName, notes;
+    public String id, pickUplocationName, dropOffLocationName, notes;
     public Date date;
-    public double longitude, latitude;
+    public double pickUpLongitude, pickUpLatitude, dropOffLongitude, dropOffLatitude;
 
     public Booking() {}
 
-    public Booking(String id, String locationName, String notes, Date date, double longitude, double latitude) {
+    public Booking(String id, String pickUplocationName, String dropOffLocationName, String notes, Date date, double pickUpLongitude, double pickUpLatitude, double dropOffLongitude, double dropOffLatitude) {
         this.id = id;
-        this.locationName = locationName;
+        this.pickUplocationName = pickUplocationName;
+        this.dropOffLocationName = dropOffLocationName;
         this.notes = notes;
         this.date = date;
-        this.longitude = longitude;
-        this.latitude = latitude;
+        this.pickUpLongitude = pickUpLongitude;
+        this.pickUpLatitude = pickUpLatitude;
+        this.dropOffLongitude = dropOffLongitude;
+        this.dropOffLatitude = dropOffLatitude;
     }
 
     public String getId() {
@@ -34,12 +37,12 @@ public class Booking {
         this.notes = notes;
     }
 
-    public String getLocationName() {
-        return locationName;
+    public String getPickUplocationName() {
+        return pickUplocationName;
     }
 
-    public void setLocationName(String locationName) {
-        this.locationName = locationName;
+    public void setPickUplocationName(String pickUplocationName) {
+        this.pickUplocationName = pickUplocationName;
     }
 
     public Date getDate() {
@@ -50,19 +53,43 @@ public class Booking {
         this.date = date;
     }
 
-    public double getLongitude() {
-        return longitude;
+    public double getPickUpLongitude() {
+        return pickUpLongitude;
     }
 
-    public void setLongitude(double longitude) {
-        this.longitude = longitude;
+    public void setPickUpLongitude(double pickUpLongitude) {
+        this.pickUpLongitude = pickUpLongitude;
     }
 
-    public double getLatitude() {
-        return latitude;
+    public double getPickUpLatitude() {
+        return pickUpLatitude;
     }
 
-    public void setLatitude(double latitude) {
-        this.latitude = latitude;
+    public void setPickUpLatitude(double pickUpLatitude) {
+        this.pickUpLatitude = pickUpLatitude;
+    }
+
+    public String getDropOffLocationName() {
+        return dropOffLocationName;
+    }
+
+    public void setDropOffLocationName(String dropOffLocationName) {
+        this.dropOffLocationName = dropOffLocationName;
+    }
+
+    public double getDropOffLongitude() {
+        return dropOffLongitude;
+    }
+
+    public void setDropOffLongitude(double dropOffLongitude) {
+        this.dropOffLongitude = dropOffLongitude;
+    }
+
+    public double getDropOffLatitude() {
+        return dropOffLatitude;
+    }
+
+    public void setDropOffLatitude(double dropOffLatitude) {
+        this.dropOffLatitude = dropOffLatitude;
     }
 }
