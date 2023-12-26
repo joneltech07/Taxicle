@@ -10,11 +10,6 @@
     android:background="@drawable/button_rounded"
     android:gravity="center">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Drop-off" />
-
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -22,64 +17,38 @@
         android:layout_marginBottom="10dp"
         android:padding="10dp"
         android:background="@drawable/location_bg">
+
         <ImageView
             android:id="@+id/location_icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/location_icon_blue"
-            android:layout_marginTop="10dp"/>
-        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:src="@drawable/baseline_location_on_24"
+            android:layout_centerVertical="true"
+            app:tint="#52DAD2" />
+
+        <TextView
+            android:id="@+id/location_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:fontFamily="@font/poppins_bold"
+            android:textColor="@color/black"
+            android:text="Location Name"
             android:layout_toRightOf="@+id/location_icon"
             android:layout_marginLeft="10dp"
-            android:layout_centerVertical="true"
-            android:gravity="center_vertical">
-            <TextView
-                android:id="@+id/location_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/poppins_bold"
-                android:textColor="@color/black"
-                android:text="Location Name"/>
-            <TextView
-                android:id="@+id/point"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/poppins"
-                android:textColor="@color/black"
-                android:text="long and lat"/>
-        </LinearLayout>
+            android:layout_centerVertical="true"/>
     </RelativeLayout>
 
-    <LinearLayout
+    <Button
+        android:id="@+id/btn_choose_point"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center">
-        <ImageButton
-            android:id="@+id/btn_reset"
-            android:layout_width="150dp"
-            android:padding="5dp"
-            android:layout_height="wrap_content"
-            android:src="@drawable/baseline_refresh_24"
-            android:background="#F8F8F8"
-            android:layout_marginRight="20dp"
-            app:tint="#F36338" />
-
-        <Button
-            android:id="@+id/btn_choose_point"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Drop Me Here"
-            android:fontFamily="@font/poppins_bold"
-            android:textColor="@color/white"
-            android:textAlignment="center"
-            android:gravity="center"
-            android:backgroundTint="#52DAD2"/>
-    </LinearLayout>
-
+        android:text="Drop Me Here"
+        android:fontFamily="@font/poppins_bold"
+        android:textColor="@color/white"
+        android:textAlignment="center"
+        android:gravity="center"
+        android:backgroundTint="#52DAD2"/>
 
 
 </LinearLayout>

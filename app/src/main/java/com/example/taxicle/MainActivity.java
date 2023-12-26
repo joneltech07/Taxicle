@@ -312,6 +312,7 @@ public class MainActivity extends AppCompatActivity {
                 pointAnnotationManager.create(pointAnnotationOptions);
 
                 searchResultsView.setVisibility(View.GONE);
+                searchET.clearFocus();
 
 //              Display pickup or drop-off dialog info
                 if (isProceed) dropLocationInfo(point);
@@ -407,13 +408,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         TextView tvLocationName = dialogView.findViewById(R.id.location_name);
-        TextView tvPoint = dialogView.findViewById(R.id.point);
         EditText notes = dialogView.findViewById(R.id.pick_up_notes);
 
         Address address = getGeoCode(point);
         String locationName = address.getAddressLine(0);
         tvLocationName.setText(locationName);
-        tvPoint.setText(String.format("long: %s, lat: %s", point.longitude(), point.latitude()));
 
         // Set click listener for the "OK" button
         Button dialogButtonOK = dialogView.findViewById(R.id.btn_choose_point);
@@ -449,16 +448,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
         TextView tvLocationName = dialogView.findViewById(R.id.location_name);
-        TextView tvPoint = dialogView.findViewById(R.id.point);
 
         Address address = getGeoCode(point);
         String locationName = address.getAddressLine(0);
         tvLocationName.setText(locationName);
-        tvPoint.setText(String.format("long: %s, lat: %s", point.longitude(), point.latitude()));
 
         // Set click listener for the "OK" button
         Button dialogButtonOK = dialogView.findViewById(R.id.btn_choose_point);
-        ImageButton dialogButtonReset = dialogView.findViewById(R.id.btn_reset);
 
         dialogButtonOK.setOnClickListener(v -> {
             // Handle button click (dismiss the dialog or perform other actions)
@@ -468,9 +464,8 @@ public class MainActivity extends AppCompatActivity {
             bottomDialog.dismiss();
         });
 
-        dialogButtonReset.setOnClickListener(v -> {
+        bottomDialog.setOnDismissListener(d -> {
             isProceed = false;
-            bottomDialog.dismiss();
         });
 
         // Show the bottom dialog
@@ -493,18 +488,6 @@ public class MainActivity extends AppCompatActivity {
             window.setGravity(android.view.Gravity.BOTTOM);
             window.setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
         }
-
-
-        TextView tvLocName, tvPoint, tvNote;
-        tvLocName = dialogView.findViewById(R.id.location_name);
-        tvPoint = dialogView.findViewById(R.id.point);
-        tvNote = dialogView.findViewById(R.id.pick_up_notes);
-
-        tvLocName.setText(pickUpLocationName);
-        tvPoint.setText(String.format("long: %s lat: %s", pickUpPoint.longitude(), pickUpPoint.latitude()));
-        tvNote.setText(notesForDriver);
-
-        if (notesForDriver.isEmpty()) tvNote.setVisibility(View.GONE);
 
         // Set click listener for the "OK" button
         Button dialogBtnProceed = dialogView.findViewById(R.id.btn_proceed);
@@ -541,16 +524,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         TextView tvPickUpLocationName = dialogView.findViewById(R.id.pickup_location_name);
-        TextView tvPickUpPoint = dialogView.findViewById(R.id.pickup_point);
         TextView tvDropLocationName = dialogView.findViewById(R.id.drop_location_name);
-        TextView tvDropPoint = dialogView.findViewById(R.id.drop_point);
 
         tvPickUpLocationName.setText(pickUpLocationName);
-        tvPickUpPoint.setText(String.format("long: %s, lat: %s", pickUpPoint.longitude(), pickUpPoint.latitude()));
-
         tvDropLocationName.setText(dropOffLocationName);
-        tvDropPoint.setText(String.format("long: %s, lat: %s", dropOffPoint.longitude(), dropOffPoint.latitude()));
-
 
         Button dialogButtonBookNow = dialogView.findViewById(R.id.btn_book_now);
         Button dialogButtonCancel = dialogView.findViewById(R.id.btn_cancel);
@@ -565,6 +542,10 @@ public class MainActivity extends AppCompatActivity {
         dialogButtonCancel.setOnClickListener(v -> {
             isProceed = false;
             bottomDialog.dismiss();
+        });
+
+        bottomDialog.setOnDismissListener(d -> {
+            isProceed = false;
         });
 
         // Show the bottom dialog

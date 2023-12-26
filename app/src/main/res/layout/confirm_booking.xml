@@ -1,63 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:layout_gravity="bottom"
     android:background="@drawable/button_rounded"
+    android:padding="10dp"
     android:gravity="center">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Pick up location: "
-        android:layout_gravity="left"
-        android:layout_margin="10dp"/>
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp"
-        android:layout_margin="10dp"
-        android:background="@drawable/location_bg">
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:layout_margin="10dp">
         <ImageView
             android:id="@+id/location_icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/location_icon_blue"
-            android:layout_marginTop="10dp"/>
-        <LinearLayout
+            android:src="@drawable/baseline_my_location_24"
+            android:layout_centerVertical="true"
+            android:layout_marginTop="10dp"
+            app:tint="#52DAD2" />
+
+        <TextView
+            android:id="@+id/pickup_location_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:fontFamily="@font/poppins_bold"
+            android:textColor="@color/black"
+            android:text="Location Name"
             android:layout_toRightOf="@+id/location_icon"
-            android:layout_marginLeft="10dp"
             android:layout_centerVertical="true"
-            android:gravity="center_vertical">
-            <TextView
-                android:id="@+id/pickup_location_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/poppins_bold"
-                android:textColor="@color/black"
-                android:text="Location Name"/>
-            <TextView
-                android:id="@+id/pickup_point"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/poppins"
-                android:textColor="@color/black"
-                android:text="long and lat"/>
-        </LinearLayout>
+            android:layout_marginLeft="10dp"/>
     </RelativeLayout>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Drop location: "
-        android:layout_gravity="left"
-        android:layout_margin="10dp"/>
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -69,63 +47,55 @@
             android:id="@+id/drop_location_icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/location_icon_blue"
-            android:layout_marginTop="10dp"/>
-        <LinearLayout
+            android:src="@drawable/baseline_location_on_24"
+            android:layout_marginTop="10dp"
+            android:layout_centerVertical="true"
+            app:tint="#52DAD2" />
+        <TextView
+            android:id="@+id/drop_location_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:fontFamily="@font/poppins_bold"
+            android:textColor="@color/black"
+            android:text="Location Name"
             android:layout_toRightOf="@+id/drop_location_icon"
-            android:layout_marginLeft="10dp"
             android:layout_centerVertical="true"
-            android:gravity="center_vertical">
-            <TextView
-                android:id="@+id/drop_location_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/poppins_bold"
-                android:textColor="@color/black"
-                android:text="Location Name"/>
-            <TextView
-                android:id="@+id/drop_point"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/poppins"
-                android:textColor="@color/black"
-                android:text="long and lat"/>
-        </LinearLayout>
+            android:layout_marginLeft="10dp"/>
     </RelativeLayout>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Click Book now to confirm booking"
+        android:fontFamily="@font/poppins"
         android:layout_gravity="center"/>
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:layout_gravity="center"
-        android:layout_margin="20dp">
+        android:layout_margin="10dp"
+        android:orientation="horizontal">
+
         <Button
             android:id="@+id/btn_cancel"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
-            android:text="Cancel"
-            android:fontFamily="@font/poppins_bold"
-            android:textColor="@color/white"
             android:layout_alignParentStart="true"
-            android:backgroundTint="#FB4710"/>
+            android:backgroundTint="#FB4710"
+            android:fontFamily="@font/poppins_bold"
+            android:text="Cancel"
+            android:textColor="@color/white" />
+
         <Button
             android:id="@+id/btn_book_now"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
-            android:text="Book Now"
-            android:fontFamily="@font/poppins_bold"
-            android:textColor="@color/white"
+            android:layout_alignParentEnd="true"
             android:backgroundTint="#52DAD2"
-            android:layout_alignParentEnd="true"/>
+            android:fontFamily="@font/poppins_bold"
+            android:text="Book Now"
+            android:textColor="@color/white" />
     </RelativeLayout>
 
 

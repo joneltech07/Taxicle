@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -8,11 +9,6 @@
     android:layout_gravity="bottom"
     android:background="@drawable/button_rounded"
     android:gravity="center">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Pickup" />
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -24,31 +20,20 @@
             android:id="@+id/location_icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/location_icon_blue"
-            android:layout_marginTop="10dp"/>
-        <LinearLayout
+            android:src="@drawable/baseline_my_location_24"
+            android:layout_marginTop="10dp"
+            android:layout_centerVertical="true"
+            app:tint="#52DAD2" />
+        <TextView
+            android:id="@+id/location_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:fontFamily="@font/poppins_bold"
+            android:textColor="@color/black"
+            android:text="Location Name"
             android:layout_toRightOf="@+id/location_icon"
             android:layout_marginLeft="10dp"
-            android:layout_centerVertical="true"
-            android:gravity="center_vertical">
-            <TextView
-                android:id="@+id/location_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/poppins_bold"
-                android:textColor="@color/black"
-                android:text="Location Name"/>
-            <TextView
-                android:id="@+id/point"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/poppins"
-                android:textColor="@color/black"
-                android:text="long and lat"/>
-        </LinearLayout>
+            android:layout_centerVertical="true" />
     </RelativeLayout>
 
     <EditText
@@ -65,7 +50,7 @@
 
     <Button
         android:id="@+id/btn_choose_point"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Choose location for Pick-Up"
         android:fontFamily="@font/poppins_bold"
