@@ -16,56 +16,87 @@
             android:layout_height="match_parent"
             android:id="@+id/mapview"/>
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/searchLayout"
+
+        <LinearLayout
+            android:id="@+id/top_header"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginStart="16sp"
-            android:layout_marginEnd="16sp"
-            android:layout_marginTop="40sp"
-            app:boxStrokeWidth="0sp"
-            app:boxStrokeWidthFocused="0sp"
-            style="@style/Widget.Material3.TextInputLayout.FilledBox.Dense"
-            app:boxCornerRadiusBottomStart="10sp"
-            app:boxCornerRadiusTopEnd="10sp"
-            app:boxCornerRadiusTopStart="10sp"
-            app:boxCornerRadiusBottomEnd="10sp"
-            app:startIconDrawable="@drawable/baseline_search_24"
-            android:hint="Search"
-            app:hintTextColor="@color/black"
-            app:endIconTint="@color/black"
-            android:elevation="3sp" >
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/searchET"
+            <ImageButton
+                android:id="@+id/show_drawer"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentTop="true"
+                android:layout_margin="10dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/button_rounded"
+                android:src="@drawable/baseline_view_headline_24"
+                app:tint="@color/black" />
+
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/searchLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:backgroundTint="#FFFFFF"
-                android:fontFamily="@font/poppins"
-                android:textColorHint="@color/black"
-                android:textColor="@color/black"
-                android:inputType="text" />
+                android:layout_height="50dp"
+                android:layout_marginStart="16sp"
+                android:layout_marginEnd="16sp"
+                app:boxStrokeWidth="0sp"
+                app:boxStrokeWidthFocused="0sp"
+                style="@style/Widget.Material3.TextInputLayout.FilledBox.Dense"
+                app:boxCornerRadiusBottomStart="10sp"
+                app:boxCornerRadiusTopEnd="10sp"
+                app:boxCornerRadiusTopStart="10sp"
+                app:boxCornerRadiusBottomEnd="10sp"
+                app:startIconDrawable="@drawable/baseline_search_24"
+                android:hint="Search"
+                app:hintTextColor="@color/black"
+                app:endIconTint="@color/black"
+                android:elevation="3sp" >
 
-        </com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/searchET"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="#FFFFFF"
+                    android:fontFamily="@font/poppins"
+                    android:textColorHint="@color/black"
+                    android:textColor="@color/black"
+                    android:inputType="text" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
 
         <com.mapbox.search.ui.view.SearchResultsView
             android:id="@+id/search_results_view"
             android:layout_width="match_parent"
             android:layout_height="300dp"
-            android:layout_below="@+id/searchLayout"
+            android:layout_below="@+id/top_header"
             android:layout_marginTop="16sp"
             android:visibility="gone"
             android:paddingTop="8sp"
             android:paddingBottom="22sp" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/focusLocation"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/baseline_my_location_24"
-            android:id="@+id/focusLocation"
             android:layout_alignParentEnd="true"
-            android:layout_margin="50dp"
-            android:layout_alignParentBottom="true"/>
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="50dp"
+            android:layout_marginTop="50dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="50dp"
+            android:src="@drawable/baseline_my_location_24"
+            android:tint="@color/black"
+            android:foregroundTint="@color/black"
+            android:backgroundTint="@color/white"/>
+
+
 
         <RelativeLayout
             android:id="@+id/bottom_notif"
@@ -110,6 +141,20 @@
         </RelativeLayout>
     </RelativeLayout>
 
+    <RelativeLayout
+        android:id="@+id/rl_progress_bar_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#94000000">
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_centerHorizontal="true"
+            android:progressTint="@color/white"/>
+    </RelativeLayout>
+
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view"
@@ -118,6 +163,8 @@
         app:headerLayout="@layout/header"
         android:background="@drawable/button_rounded"
         app:menu="@menu/main_menu"
+        app:itemTextColor="@color/black"
+        app:itemIconTint="@color/black"
         android:layout_gravity="start" />
 
 </androidx.drawerlayout.widget.DrawerLayout>

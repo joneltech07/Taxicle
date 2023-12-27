@@ -50,5 +50,17 @@
         android:gravity="center"
         android:backgroundTint="#52DAD2"/>
 
+    <Button
+        android:id="@+id/btn_cancel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Cancel"
+        android:fontFamily="@font/poppins_bold"
+        android:textColor="@color/white"
+        android:textAlignment="center"
+        android:gravity="center"
+        android:backgroundTint="#DA6D52"/>
+
 
 </LinearLayout>

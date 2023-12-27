@@ -3,15 +3,20 @@
 
     <group android:checkableBehavior="single">
         <item android:id="@+id/acc_setting"
-            android:title="Account Setting" />
+            android:title="Account Setting"
+            android:icon="@drawable/manage_accounts_24"/>
         <item android:id="@+id/booked"
-            android:title="Booked" />
+            android:title="Booked"
+            android:icon="@drawable/pin_drop_24"/>
         <item android:id="@+id/advance_book"
-            android:title="Booked for later" />
+            android:title="Booked for later"
+            android:icon="@drawable/watch_later_24"/>
         <item android:id="@+id/history"
-            android:title="Booking History" />
+            android:title="Booking History"
+            android:icon="@drawable/history_24"/>
         <item
             android:id="@+id/logout"
-            android:title="Log Out" />
+            android:title="Log Out"
+            android:icon="@drawable/logout_24"/>
     </group>
 </menu>

@@ -48,11 +48,9 @@ dependencies {
     implementation ("androidx.cardview:cardview:1.0.0")
     implementation ("com.github.bumptech.glide:glide:4.16.0")
     implementation ("de.hdodenhof:circleimageview:3.1.0")
-    implementation ("com.mapbox.navigation:android:2.15.2")
     implementation 'androidx.navigation:navigation-fragment:2.7.5'
     implementation 'androidx.navigation:navigation-ui:2.7.5'
     implementation 'com.google.firebase:firebase-auth:22.3.0'
-    implementation 'com.mapbox.search:mapbox-search-android-ui:1.0.0-rc.6'
 
 
     implementation ("com.orhanobut:dialogplus:1.11@aar")
@@ -61,5 +59,9 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     implementation 'com.github.bumptech.glide:glide:4.16.0'
+
     implementation 'com.mapbox.maps:android:10.16.0'
+    implementation "com.mapbox.navigation:android:2.15.2"
+    implementation 'com.mapbox.search:mapbox-search-android-ui:1.0.0-rc.6'
+
 }
