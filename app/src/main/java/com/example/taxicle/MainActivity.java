@@ -6,6 +6,7 @@ import static com.mapbox.maps.plugin.gestures.GesturesUtils.addOnMapClickListene
 import static com.mapbox.maps.plugin.gestures.GesturesUtils.getGestures;
 import static com.mapbox.maps.plugin.locationcomponent.LocationComponentUtils.getLocationComponent;
 import static com.mapbox.navigation.base.extensions.RouteOptionsExtensions.applyDefaultNavigationOptions;
+import static com.mapbox.turf.TurfConstants.UNIT_METERS;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -18,6 +19,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -50,10 +53,13 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.taxicle.adapter.AvailableDriverAdapter;
+import com.example.taxicle.constructors.AvailableDriver;
 import com.example.taxicle.constructors.Booking;
 import com.example.taxicle.constructors.Passenger;
 import com.example.taxicle.data_access_object.DAO;
 import com.example.taxicle.data_access_object.DAOBooking;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.TextInputEditText;
@@ -116,11 +122,15 @@ import com.mapbox.search.autocomplete.PlaceAutocompleteSuggestion;
 import com.mapbox.search.ui.adapter.autocomplete.PlaceAutocompleteUiAdapter;
 import com.mapbox.search.ui.view.CommonSearchViewConfiguration;
 import com.mapbox.search.ui.view.SearchResultsView;
+import com.mapbox.turf.TurfConstants;
+import com.mapbox.turf.TurfMeasurement;
 
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 import kotlin.Unit;
@@ -134,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
     Button logOut;
     FirebaseUser user;
     private MapView mapView;
-    FloatingActionButton floatingActionButton;
+    ImageButton floatingActionButton, showDrivers;
     Point point;
     Passenger location;
     
@@ -175,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
                 getLocationComponent(mapView).removeOnIndicatorBearingChangedListener(onIndicatorBearingChangedListener);
                 getLocationComponent(mapView).removeOnIndicatorPositionChangedListener(onIndicatorPositionChangedListener);
                 getGestures(mapView).removeOnMoveListener(onMoveListener);
-                floatingActionButton.show();
+                floatingActionButton.setVisibility(View.VISIBLE);
             } catch (Exception e) {
                 Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
@@ -263,10 +273,21 @@ public class MainActivity extends AppCompatActivity {
     private Bitmap bitmapRedLocation, bitmapBLueLocation, bitmapPin;
     private AnnotationPlugin annotationPlugin;
 
+
+
+
+
+    AvailableDriverAdapter adapter;
+
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
 
         progressBar = findViewById(R.id.rl_progress_bar_container);
 
@@ -283,11 +304,11 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, Booked.class));
         });
         tvCancel.setOnClickListener(v -> {
-            DAO dao = new DAO();
-            dao.cancelBooked(user.getUid());
-            findViewById(R.id.bottom_notif).setVisibility(View.GONE);
-            Toast.makeText(this, "Booking cancelled", Toast.LENGTH_SHORT).show();
+            cancelBooking();
         });
+
+
+
 
 
 
@@ -297,7 +318,6 @@ public class MainActivity extends AppCompatActivity {
         drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.open, R.string.close);
         drawerLayout.addDrawerListener(drawerToggle);
         drawerToggle.syncState();
-//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         navigationView.setNavigationItemSelectedListener(item -> {
             if (item.getItemId() == R.id.acc_setting) {
                 Toast.makeText(MainActivity.this, "Setting", Toast.LENGTH_SHORT).show();
@@ -313,15 +333,31 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
 
+
+
+
+
+
         ImageButton showDrawer = findViewById(R.id.show_drawer);
         showDrawer.setOnClickListener(v -> drawerLayout.open());
+
+
+
 
         View headerView = navigationView.getHeaderView(0);
         TextView tvUserName = headerView.findViewById(R.id.user_name);
         TextView tvEmail = headerView.findViewById(R.id.email);
 
+
+
+
+
         auth = FirebaseAuth.getInstance();
         user = auth.getCurrentUser();
+
+
+
+
 
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference(Passenger.class.getSimpleName());
         databaseReference.child(user.getUid()).addValueEventListener(new ValueEventListener() {
@@ -344,6 +380,8 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
+
         FirebaseApp.initializeApp(this);
 
 
@@ -353,6 +391,7 @@ public class MainActivity extends AppCompatActivity {
         searchET = findViewById(R.id.searchET);
 
         searchResultsView = findViewById(R.id.search_results_view);
+        searchResultsView.setVisibility(View.GONE);
         searchResultsView.initialize(new SearchResultsView.Configuration(new CommonSearchViewConfiguration()));
         placeAutocompleteUiAdapter = new PlaceAutocompleteUiAdapter(searchResultsView, placeAutocomplete, LocationEngineProvider.getBestLocationEngine(this));
 
@@ -390,8 +429,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+
         mapView = findViewById(R.id.mapview);
         floatingActionButton = findViewById(R.id.focusLocation);
+        showDrivers = findViewById(R.id.show_drivers);
 
 
 
@@ -479,6 +521,17 @@ public class MainActivity extends AppCompatActivity {
 
                         //              Display pickup or drop-off dialog info
                         if (isProceed) {
+                            double distanceBetweenDeviceAndTarget = TurfMeasurement.distance(pickUpPoint,
+                                    point, UNIT_METERS);
+
+                            if (distanceBetweenDeviceAndTarget >= 1000) {
+                                distanceBetweenDeviceAndTarget = TurfMeasurement.distance(pickUpPoint,
+                                        point, TurfConstants.UNIT_KILOMETERS);
+                                Toast.makeText(this, String.format("%skm", NumberFormat.getNumberInstance(Locale.US).format(distanceBetweenDeviceAndTarget)), Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(this, String.format("%sm", NumberFormat.getNumberInstance(Locale.US).format(distanceBetweenDeviceAndTarget)), Toast.LENGTH_SHORT).show();
+                            }
+
                             dropLocationInfo(point);
                         } else {
                             pickLocationInfo(point);
@@ -501,9 +554,11 @@ public class MainActivity extends AppCompatActivity {
                 locationComponentPlugin.addOnIndicatorBearingChangedListener(onIndicatorBearingChangedListener);
                 locationComponentPlugin.addOnIndicatorPositionChangedListener(onIndicatorPositionChangedListener);
                 getGestures(mapView).addOnMoveListener(onMoveListener);
-                floatingActionButton.hide();
+                floatingActionButton.setVisibility(View.GONE);
+            });
 
-
+            showDrivers.setOnClickListener(v -> {
+                chooseDriver();
             });
 
 
@@ -542,6 +597,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+
+
+
+
+
+
         MapboxRouteLineOptions options = new MapboxRouteLineOptions.Builder(this).withRouteLineResources(new RouteLineResources.Builder().build())
                 .withRouteLineBelowLayerId("road-label-navigation").build();
         routeLineView = new MapboxRouteLineView(options);
@@ -560,6 +621,9 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+        checkIfBookingAccepted();
+
+
 
 
 
@@ -568,6 +632,43 @@ public class MainActivity extends AppCompatActivity {
 //      set progress bar visibility to gone
         progressBar.setVisibility(View.GONE);
     }
+
+
+
+
+
+
+
+
+    private void checkIfBookingAccepted() {
+        FirebaseDatabase.getInstance().getReference(Booking.class.getSimpleName())
+                .child(user.getUid()).addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            Booking booking = snapshot.getValue(Booking.class);
+                            assert booking != null;
+                            if (booking.isAccepted()) {
+                                showDrivers.setVisibility(View.GONE);
+                                Toast.makeText(MainActivity.this, "Booking Accepted", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+    }
+
+
+
+
+
+
+
+
 
 
     private void getRouteData() {
@@ -602,8 +703,12 @@ public class MainActivity extends AppCompatActivity {
                     pointAnnotationManager.create(dropOffPointAnnotationOptions);
 
                     fetchRoute(pickupPoint, dropOffPoint);
+
+                    showDrivers.setVisibility(View.VISIBLE);
                 } else {
                     // Node is empty
+                    findViewById(R.id.bottom_notif).setVisibility(View.GONE);
+                    showDrivers.setVisibility(View.GONE);
                     hasBooked = false;
                 }
             }
@@ -678,6 +783,7 @@ public class MainActivity extends AppCompatActivity {
                 builder.profile(DirectionsCriteria.PROFILE_DRIVING);
                 builder.bearingsList(Arrays.asList(Bearing.builder().angle(location.getBearing()).degrees(45.0).build(), null));
                 applyDefaultNavigationOptions(builder);
+
 
                 mapboxNavigation.requestRoutes(builder.build(), new NavigationRouterCallback() {
                     @Override
@@ -811,7 +917,10 @@ public class MainActivity extends AppCompatActivity {
                         isProceed = false;
                         pointAnnotationManager.deleteAll();
                     })
-                    .setNegativeButton("No", (dialog, id) -> dialog.dismiss());
+                    .setNegativeButton("No", (dialog, id) -> {
+                        dialog.dismiss();
+                        Toast.makeText(this, "Booking discarded", Toast.LENGTH_SHORT).show();
+                    });
             builder.setCancelable(false);
             // Create the AlertDialog object and return it.
             builder.create();
@@ -875,6 +984,7 @@ public class MainActivity extends AppCompatActivity {
         // Create a dialog without a title
         Dialog bottomDialog = new Dialog(this);
         bottomDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        bottomDialog.setCancelable(false);
         bottomDialog.setContentView(dialogView);
 
         // Set the dialog to appear at the bottom of the screen
@@ -897,21 +1007,78 @@ public class MainActivity extends AppCompatActivity {
             // Handle button click (dismiss the dialog or perform other actions)
             isProceed = false;
             bookNow();
+            chooseDriver();
             bottomDialog.dismiss();
         });
 
         dialogButtonCancel.setOnClickListener(v -> {
             isProceed = false;
             bottomDialog.dismiss();
+            Toast.makeText(this, "Booking discarded", Toast.LENGTH_SHORT).show();
         });
 
-        bottomDialog.setOnDismissListener(d -> {
-            isProceed = false;
-        });
 
         // Show the bottom dialog
         bottomDialog.show();
     }
+
+
+
+
+
+
+    private void chooseDriver() {
+
+        // Inflate the bottom dialog layout
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.available_driver_list, null);
+
+        // Create a dialog without a title
+        Dialog bottomDialog = new Dialog(this);
+        bottomDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        bottomDialog.setCancelable(false);
+        bottomDialog.setContentView(dialogView);
+
+        // Set the dialog to appear at the bottom of the screen
+        Window window = bottomDialog.getWindow();
+        if (window != null) {
+            window.setGravity(android.view.Gravity.BOTTOM);
+            window.setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+
+
+
+        RecyclerView recyclerView = bottomDialog.findViewById(R.id.rv);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+
+        FirebaseRecyclerOptions<AvailableDriver> options =
+                new FirebaseRecyclerOptions.Builder<AvailableDriver>()
+                        .setQuery(FirebaseDatabase.getInstance().getReference(AvailableDriver.class.getSimpleName()), AvailableDriver.class)
+                        .build();
+        adapter = new AvailableDriverAdapter(options);
+        recyclerView.setAdapter(adapter);
+        adapter.startListening();
+
+
+        bottomDialog.findViewById(R.id.ib_close).setOnClickListener(v -> {
+            bottomDialog.dismiss();
+        });
+
+
+
+        bottomDialog.findViewById(R.id.btn_cancel).setOnClickListener(v -> {
+            cancelBooking();
+            bottomDialog.dismiss();
+        });
+
+
+
+
+        // Show the bottom dialog
+        bottomDialog.show();
+    }
+
+
 
 
 
@@ -940,7 +1107,29 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(MainActivity.this, "Booked", Toast.LENGTH_SHORT).show();
         //      set progress bar visibility to gone
         findViewById(R.id.rl_progress_bar_container).setVisibility(View.GONE);
+        showDrivers.setVisibility(View.VISIBLE);
     }
+
+
+
+
+
+
+
+    private void cancelBooking() {
+        DAOBooking dao = new DAOBooking();
+        dao.cancelBooked(user.getUid());
+        findViewById(R.id.bottom_notif).setVisibility(View.GONE);
+        Toast.makeText(this, "Booking cancelled", Toast.LENGTH_SHORT).show();
+
+
+        pointAnnotationManager.deleteAll();
+    }
+
+
+
+
+
 
 
 
@@ -988,10 +1177,32 @@ public class MainActivity extends AppCompatActivity {
 
 
     @Override
+    public void onStart() {
+        super.onStart();
+        mapView.onStart();
+    }
+
+
+
+
+
+
+
+
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
-        mapboxNavigation.onDestroy();
-        mapboxNavigation.unregisterRoutesObserver(routesObserver);
-        mapboxNavigation.unregisterLocationObserver(locationObserver);
+        if (mapboxNavigation != null) {
+            mapboxNavigation.onDestroy();
+            mapboxNavigation.unregisterRoutesObserver(routesObserver);
+            mapboxNavigation.unregisterLocationObserver(locationObserver);
+        }
+        mapView.onDestroy();
     }
+
+
+
+
+
 }

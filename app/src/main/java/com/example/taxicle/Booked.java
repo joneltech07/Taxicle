@@ -143,6 +143,9 @@ public class Booked extends AppCompatActivity {
     private Bitmap bitmapRedLocation, bitmapBLueLocation;
     private AnnotationPlugin annotationPlugin;
 
+
+    private Button btnCancelBooked;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -151,6 +154,7 @@ public class Booked extends AppCompatActivity {
         try {
 
             progressBar = findViewById(R.id.rl_progress_bar_container);
+            btnCancelBooked = findViewById(R.id.btn_cancel);
 
 
 //      initialize drawable sources and bitmaps
@@ -200,6 +204,7 @@ public class Booked extends AppCompatActivity {
             try {
                 databaseReference.child(user.getUid()).addValueEventListener(new ValueEventListener() {
 
+                    @SuppressLint("SetTextI18n")
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         try {
@@ -211,8 +216,9 @@ public class Booked extends AppCompatActivity {
 
                                 assert booking != null;
                                 String pickUpLocationName = booking.getPickUplocationName();
-                                String dropOffLocationName = booking.getPickUplocationName();
+                                String dropOffLocationName = booking.getDropOffLocationName();
                                 String notes = booking.getNotes();
+                                boolean isAccepted = booking.isAccepted();
 
                                 TextView tvPickUpLocationName = findViewById(R.id.pickup_location_name);
                                 tvPickUpLocationName.setText(pickUpLocationName);
@@ -222,6 +228,16 @@ public class Booked extends AppCompatActivity {
 
                                 TextView tvNotes = findViewById(R.id.pick_up_notes);
                                 tvNotes.setText(String.format("notes: %s", notes));
+
+                                TextView status = findViewById(R.id.tv_status);
+
+                                if (isAccepted) {
+                                    status.setText("Accepted");
+                                    Toast.makeText(Booked.this, "Accepted", Toast.LENGTH_SHORT).show();
+                                    btnCancelBooked.setVisibility(View.GONE);
+                                } else {
+                                    Toast.makeText(Booked.this, "why", Toast.LENGTH_SHORT).show();
+                                }
 
 
                                 assert booking != null;
@@ -266,7 +282,7 @@ public class Booked extends AppCompatActivity {
             }
 
 
-            Button btnCancelBooked = findViewById(R.id.btn_cancel);
+
             btnCancelBooked.setOnClickListener(v -> {
                 DAOBooking dao = new DAOBooking();
                 dao.cancelBooked(user.getUid());
@@ -365,9 +381,11 @@ public class Booked extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+        mapboxNavigation.onDestroy();
+        mapboxNavigation.unregisterRoutesObserver(routesObserver);
+        mapboxNavigation.unregisterLocationObserver(locationObserver);
         startActivity(new Intent(this, MainActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK));
-        onDestroy();
     }
 
 

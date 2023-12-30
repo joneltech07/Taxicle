@@ -90,6 +90,7 @@
                 android:backgroundTint="#6AEBE3"/>
 
             <TextView
+                android:id="@+id/tv_status"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Status: processing..."
@@ -124,7 +125,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/baseline_keyboard_backspace_24"
-        android:background="#00FFFFFF"
+        android:background="@drawable/button_rounded"
+        android:backgroundTint="@color/black"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
         app:tint="@color/white" />
 
     <RelativeLayout
