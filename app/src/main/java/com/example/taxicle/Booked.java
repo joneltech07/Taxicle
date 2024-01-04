@@ -235,8 +235,6 @@ public class Booked extends AppCompatActivity {
                                     status.setText("Accepted");
                                     Toast.makeText(Booked.this, "Accepted", Toast.LENGTH_SHORT).show();
                                     btnCancelBooked.setVisibility(View.GONE);
-                                } else {
-                                    Toast.makeText(Booked.this, "why", Toast.LENGTH_SHORT).show();
                                 }
 
 
@@ -292,11 +290,7 @@ public class Booked extends AppCompatActivity {
 
 //          Back Button
             findViewById(R.id.ib_back).setOnClickListener(v -> {
-                mapboxNavigation.onDestroy();
-                mapboxNavigation.unregisterRoutesObserver(routesObserver);
-                mapboxNavigation.unregisterLocationObserver(locationObserver);
-                startActivity(new Intent(this, MainActivity.class)
-                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK));
+                onBackPressed();
             });
 
 
@@ -384,8 +378,6 @@ public class Booked extends AppCompatActivity {
         mapboxNavigation.onDestroy();
         mapboxNavigation.unregisterRoutesObserver(routesObserver);
         mapboxNavigation.unregisterLocationObserver(locationObserver);
-        startActivity(new Intent(this, MainActivity.class)
-                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK));
     }
 
 

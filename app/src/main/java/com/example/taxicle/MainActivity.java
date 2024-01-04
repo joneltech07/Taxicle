@@ -26,11 +26,9 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
@@ -48,7 +46,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -57,10 +54,8 @@ import com.example.taxicle.adapter.AvailableDriverAdapter;
 import com.example.taxicle.constructors.AvailableDriver;
 import com.example.taxicle.constructors.Booking;
 import com.example.taxicle.constructors.Passenger;
-import com.example.taxicle.data_access_object.DAO;
 import com.example.taxicle.data_access_object.DAOBooking;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.FirebaseApp;
@@ -79,7 +74,10 @@ import com.mapbox.android.gestures.MoveGestureDetector;
 import com.mapbox.api.directions.v5.DirectionsCriteria;
 import com.mapbox.api.directions.v5.models.Bearing;
 import com.mapbox.api.directions.v5.models.RouteOptions;
-import com.mapbox.bindgen.Expected;
+import com.mapbox.api.geocoding.v5.GeocodingCriteria;
+import com.mapbox.api.geocoding.v5.MapboxGeocoding;
+import com.mapbox.api.geocoding.v5.models.CarmenFeature;
+import com.mapbox.api.geocoding.v5.models.GeocodingResponse;
 import com.mapbox.geojson.Point;
 import com.mapbox.maps.CameraOptions;
 import com.mapbox.maps.EdgeInsets;
@@ -109,14 +107,11 @@ import com.mapbox.navigation.core.directions.session.RoutesUpdatedResult;
 import com.mapbox.navigation.core.lifecycle.MapboxNavigationApp;
 import com.mapbox.navigation.core.trip.session.LocationMatcherResult;
 import com.mapbox.navigation.core.trip.session.LocationObserver;
-import com.mapbox.navigation.ui.base.util.MapboxNavigationConsumer;
 import com.mapbox.navigation.ui.maps.location.NavigationLocationProvider;
 import com.mapbox.navigation.ui.maps.route.line.api.MapboxRouteLineApi;
 import com.mapbox.navigation.ui.maps.route.line.api.MapboxRouteLineView;
 import com.mapbox.navigation.ui.maps.route.line.model.MapboxRouteLineOptions;
-import com.mapbox.navigation.ui.maps.route.line.model.RouteLineError;
 import com.mapbox.navigation.ui.maps.route.line.model.RouteLineResources;
-import com.mapbox.navigation.ui.maps.route.line.model.RouteSetValue;
 import com.mapbox.search.autocomplete.PlaceAutocomplete;
 import com.mapbox.search.autocomplete.PlaceAutocompleteSuggestion;
 import com.mapbox.search.ui.adapter.autocomplete.PlaceAutocompleteUiAdapter;
@@ -131,20 +126,38 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 
 import kotlin.Unit;
 import kotlin.coroutines.Continuation;
 import kotlin.coroutines.CoroutineContext;
 import kotlin.coroutines.EmptyCoroutineContext;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
     FirebaseAuth auth;
-    Button logOut;
+
+
+
+
+
+
     FirebaseUser user;
     private MapView mapView;
-    ImageButton floatingActionButton, showDrivers;
+
+
+
+
+    ImageButton imFloatingActionButton, imShowDrivers, imFocusDefaultCameraView;
+
+
+
+
+
+
+
     Point point;
     Passenger location;
     
@@ -185,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
                 getLocationComponent(mapView).removeOnIndicatorBearingChangedListener(onIndicatorBearingChangedListener);
                 getLocationComponent(mapView).removeOnIndicatorPositionChangedListener(onIndicatorPositionChangedListener);
                 getGestures(mapView).removeOnMoveListener(onMoveListener);
-                floatingActionButton.setVisibility(View.VISIBLE);
+                imFloatingActionButton.setVisibility(View.VISIBLE);
             } catch (Exception e) {
                 Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
@@ -432,8 +445,9 @@ public class MainActivity extends AppCompatActivity {
 
 
         mapView = findViewById(R.id.mapview);
-        floatingActionButton = findViewById(R.id.focusLocation);
-        showDrivers = findViewById(R.id.show_drivers);
+        imFloatingActionButton = findViewById(R.id.focusLocation);
+        imShowDrivers = findViewById(R.id.show_drivers);
+        imFocusDefaultCameraView = findViewById(R.id.center_map);
 
 
 
@@ -472,7 +486,7 @@ public class MainActivity extends AppCompatActivity {
         bitmapBLueLocation = getBitmapFromVectorDrawable(drawableBlueLocation);
 
 
-        drawablePin = ContextCompat.getDrawable(this, R.drawable.baseline_push_pin_24);
+        drawablePin = ContextCompat.getDrawable(this, R.drawable.baseline_location_on_24);
         assert drawablePin != null;
         bitmapPin = getBitmapFromVectorDrawable(drawablePin);
 
@@ -512,6 +526,7 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(this, address.getAddressLine(0), Toast.LENGTH_LONG).show();
                         progressBar.setVisibility(View.GONE);
                     } else {
+                        pointAnnotationManager.deleteAll();
                         PointAnnotationOptions pickUpPointAnnotationOptions = new PointAnnotationOptions()
                                 .withTextAnchor(TextAnchor.CENTER)
                                 .withIconImage(bitmapPin)
@@ -543,7 +558,8 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             });
 
-            floatingActionButton.setOnClickListener(view1 -> {
+
+            imFloatingActionButton.setOnClickListener(view1 -> {
                 mapView.getMapboxMap().setCamera(new CameraOptions.Builder().zoom(20.0).build());
                 LocationComponentPlugin locationComponentPlugin = getLocationComponent(mapView);
                 locationComponentPlugin.setEnabled(true);
@@ -551,14 +567,27 @@ public class MainActivity extends AppCompatActivity {
                 locationPuck2D.setBearingImage(AppCompatResources.getDrawable(MainActivity.this,R.drawable.baseline_person_pin_24));
                 locationComponentPlugin.setLocationPuck(locationPuck2D);
 
+
+
+
+
                 locationComponentPlugin.addOnIndicatorBearingChangedListener(onIndicatorBearingChangedListener);
                 locationComponentPlugin.addOnIndicatorPositionChangedListener(onIndicatorPositionChangedListener);
                 getGestures(mapView).addOnMoveListener(onMoveListener);
-                floatingActionButton.setVisibility(View.GONE);
+                imFloatingActionButton.setVisibility(View.GONE);
             });
 
-            showDrivers.setOnClickListener(v -> {
+            imShowDrivers.setOnClickListener(v -> {
                 chooseDriver();
+            });
+
+//          focus camera at default view
+            imFocusDefaultCameraView.setOnClickListener(v -> {
+                updateCamera(defaultPoint, 0.0);
+                getLocationComponent(mapView).removeOnIndicatorBearingChangedListener(onIndicatorBearingChangedListener);
+                getLocationComponent(mapView).removeOnIndicatorPositionChangedListener(onIndicatorPositionChangedListener);
+                getGestures(mapView).removeOnMoveListener(onMoveListener);
+                imFloatingActionButton.setVisibility(View.VISIBLE);
             });
 
 
@@ -625,15 +654,20 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
-
-
-
 //      set progress bar visibility to gone
         progressBar.setVisibility(View.GONE);
     }
 
 
+    private MapboxGeocoding reverseGeocode(Point point) {
+        MapboxGeocoding reverseGeocoding = MapboxGeocoding.builder()
+                .accessToken(getString(R.string.mapbox_access_token))
+                .query(Point.fromLngLat(point.longitude(), point.latitude()))
+                .geocodingTypes(GeocodingCriteria.TYPE_POI)
+                .build();
+
+        return reverseGeocoding;
+    }
 
 
 
@@ -649,7 +683,7 @@ public class MainActivity extends AppCompatActivity {
                             Booking booking = snapshot.getValue(Booking.class);
                             assert booking != null;
                             if (booking.isAccepted()) {
-                                showDrivers.setVisibility(View.GONE);
+                                imShowDrivers.setVisibility(View.GONE);
                                 Toast.makeText(MainActivity.this, "Booking Accepted", Toast.LENGTH_SHORT).show();
                             }
                         }
@@ -672,6 +706,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void getRouteData() {
+
         DatabaseReference bookingDatabaseReference = FirebaseDatabase
                 .getInstance().getReference(Booking.class.getSimpleName()).child(user.getUid());
 
@@ -684,31 +719,30 @@ public class MainActivity extends AppCompatActivity {
                     Booking booking = dataSnapshot.getValue(Booking.class);
 
                     assert booking != null;
-                    Point pickupPoint = Point.fromLngLat(booking.getPickUpLongitude(), booking.getPickUpLatitude());
-                    Point dropOffPoint = Point.fromLngLat(booking.getDropOffLongitude(), booking.getDropOffLatitude());
-
                     hasBooked = true;
 
-                    pointAnnotationManager.deleteAll();
-                    PointAnnotationOptions pickUpPointAnnotationOptions = new PointAnnotationOptions()
-                            .withTextAnchor(TextAnchor.CENTER)
-                            .withIconImage(bitmapBLueLocation)
-                            .withPoint(pickupPoint);
-                    pointAnnotationManager.create(pickUpPointAnnotationOptions);
+                    if (pickUpPoint != null && dropOffPoint != null) {
+                        pointAnnotationManager.deleteAll();
+                        PointAnnotationOptions pickUpPointAnnotationOptions = new PointAnnotationOptions()
+                                .withTextAnchor(TextAnchor.CENTER)
+                                .withIconImage(bitmapBLueLocation)
+                                .withPoint(pickUpPoint);
+                        pointAnnotationManager.create(pickUpPointAnnotationOptions);
 
-                    PointAnnotationOptions dropOffPointAnnotationOptions = new PointAnnotationOptions()
-                            .withTextAnchor(TextAnchor.CENTER)
-                            .withIconImage(bitmapRedLocation)
-                            .withPoint(dropOffPoint);
-                    pointAnnotationManager.create(dropOffPointAnnotationOptions);
+                        PointAnnotationOptions dropOffPointAnnotationOptions = new PointAnnotationOptions()
+                                .withTextAnchor(TextAnchor.CENTER)
+                                .withIconImage(bitmapRedLocation)
+                                .withPoint(dropOffPoint);
+                        pointAnnotationManager.create(dropOffPointAnnotationOptions);
 
-                    fetchRoute(pickupPoint, dropOffPoint);
+                        fetchRoute(pickUpPoint, dropOffPoint);
+                    }
 
-                    showDrivers.setVisibility(View.VISIBLE);
+                    imShowDrivers.setVisibility(View.VISIBLE);
                 } else {
                     // Node is empty
                     findViewById(R.id.bottom_notif).setVisibility(View.GONE);
-                    showDrivers.setVisibility(View.GONE);
+                    imShowDrivers.setVisibility(View.GONE);
                     hasBooked = false;
                 }
             }
@@ -843,20 +877,39 @@ public class MainActivity extends AppCompatActivity {
         TextView tvLocationName = dialogView.findViewById(R.id.location_name);
         EditText notes = dialogView.findViewById(R.id.pick_up_notes);
 
-        Address address = getGeoCode(point);
-        String locationName = address.getAddressLine(0);
-        tvLocationName.setText(locationName);
 
-        // Set click listener for the "OK" button
-        Button dialogButtonOK = dialogView.findViewById(R.id.btn_choose_point);
-        dialogButtonOK.setOnClickListener(v -> {
-            // Handle button click (dismiss the dialog or perform other actions)
-            pickUpLocationName = locationName;
-            pickUpPoint = point;
-            notesForDriver = notes.getText().toString();
-            showBookInfoDialog();
-            bottomDialog.dismiss();
+        MapboxGeocoding reverseGeocode = reverseGeocode(point);
+        reverseGeocode.enqueueCall(new Callback<GeocodingResponse>() {
+            @Override
+            public void onResponse(Call<GeocodingResponse> call, Response<GeocodingResponse> response) {
+                if (response.body() != null && response.body().features() != null && !response.body().features().isEmpty()) {
+                    CarmenFeature feature = response.body().features().get(0);
+                    String addressName = feature.placeName();
+                    tvLocationName.setText(addressName);
+
+
+                    // Set click listener for the "OK" button
+                    Button dialogButtonOK = dialogView.findViewById(R.id.btn_choose_point);
+                    dialogButtonOK.setOnClickListener(v -> {
+                        // Handle button click (dismiss the dialog or perform other actions)
+                        pickUpLocationName = addressName;
+                        pickUpPoint = point;
+                        notesForDriver = notes.getText().toString();
+                        showBookInfoDialog();
+                        bottomDialog.dismiss();
+                    });
+                } else {
+                    Toast.makeText(MainActivity.this, "No address found", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<GeocodingResponse> call, Throwable t) {
+
+            }
         });
+
+
 
         // Show the bottom dialog
         bottomDialog.show();
@@ -891,22 +944,39 @@ public class MainActivity extends AppCompatActivity {
 
         TextView tvLocationName = dialogView.findViewById(R.id.location_name);
 
-        Address address = getGeoCode(point);
-        String locationName = address.getAddressLine(0);
-        tvLocationName.setText(locationName);
 
-        // Set click listener for the "OK" button
-        Button dialogButtonOK = dialogView.findViewById(R.id.btn_choose_point);
+//      Get Location Name Using Reverse Geocoding
+        MapboxGeocoding reverseGeocode = reverseGeocode(point);
+        reverseGeocode.enqueueCall(new Callback<GeocodingResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<GeocodingResponse> call, @NonNull Response<GeocodingResponse> response) {
+                if (response.body() != null && !response.body().features().isEmpty()) {
+                    CarmenFeature feature = response.body().features().get(0);
+                    String addressName = feature.placeName();
+                    tvLocationName.setText(addressName);
+
+
+                    // Set click listener for the "OK" button
+                    Button dialogButtonOK = dialogView.findViewById(R.id.btn_choose_point);
+                    dialogButtonOK.setOnClickListener(v -> {
+                        dropOffLocationName = addressName;
+                        dropOffPoint = point;
+                        confirmBooking();
+                        bottomDialog.dismiss();
+                    });
+                } else {
+                    Toast.makeText(MainActivity.this, "No address found", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<GeocodingResponse> call, Throwable t) {
+
+            }
+        });
+
         // set click listener for the cancel button
         Button dialogButtonCancel = dialogView.findViewById(R.id.btn_cancel);
-
-        dialogButtonOK.setOnClickListener(v -> {
-            // Handle button click (dismiss the dialog or perform other actions)
-            dropOffLocationName = locationName;
-            dropOffPoint = point;
-            confirmBooking();
-            bottomDialog.dismiss();
-        });
 
         dialogButtonCancel.setOnClickListener(v -> {
 
@@ -1107,7 +1177,7 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(MainActivity.this, "Booked", Toast.LENGTH_SHORT).show();
         //      set progress bar visibility to gone
         findViewById(R.id.rl_progress_bar_container).setVisibility(View.GONE);
-        showDrivers.setVisibility(View.VISIBLE);
+        imShowDrivers.setVisibility(View.VISIBLE);
     }
 
 
